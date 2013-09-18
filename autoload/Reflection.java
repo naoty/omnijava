@@ -15,49 +15,50 @@ public class Reflection {
         }
     }
 
-    public static void printPackages(String patternString) {
-        // Avoid duplications of package names
-        Set<String> packageNames = new HashSet<String>();
+    public static void printPackages(String keyword) {
+        Set<String> packageFQNs = new HashSet<String>();
 
-        int packageNumber = patternString.split("\\.").length;
-        Pattern pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE);
+        StringBuffer regex = new StringBuffer();
+        regex.append("^");
+        regex.append(Pattern.quote(keyword));
+        regex.append("[^$]*$");
+        Pattern pattern = Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE);
+
+        int numberOfKeywordPackage = keyword.split("\\.").length;
 
         // TODO: Support library paths for Windows and Linux
         String path = System.getProperty("java.home") + File.separator + ".." + File.separator + "Classes" + File.separator;
 
         File dir = new File(path);
-        File[] files = dir.listFiles();
-        for (File file : files) {
-            String filepath = file.getAbsolutePath();
-            if (!filepath.endsWith(".jar") && !filepath.endsWith(".zip"))
-                continue;
-
-            ZipFile zipFile;
+        for (File file : dir.listFiles()) {
+            ZipFile zip;
             try {
-                zipFile = new ZipFile(filepath);
+                zip = new ZipFile(file.getAbsolutePath());
             } catch (IOException e) {
                 continue;
             }
 
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
+            for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
                 ZipEntry entry = entries.nextElement();
                 if (entry == null)
                     continue;
-
-                String entryName = entry.getName();
-                if (!entryName.endsWith(".class") || entryName.indexOf("$") > 0)
+                String packageFQN = entry.getName().replace('/', '.').replaceAll("\\.class", "");
+                if (!pattern.matcher(packageFQN).find())
                     continue;
-
-                String packageName = entryName.replace('/', '.').replaceAll("\\.class", "");
-                Matcher matcher = pattern.matcher(packageName);
-                if (matcher.find() && packageName.split("\\.").length == packageNumber + 1)
-                    packageNames.add(packageName);
+                String[] packageNames = packageFQN.split("\\.");
+                if (packageNames.length <= numberOfKeywordPackage)
+                    continue;
+                StringBuffer buffer = new StringBuffer();
+                for (int i = 0; i < numberOfKeywordPackage + 1; i++) {
+                    buffer.append(packageNames[i]);
+                    if (i < numberOfKeywordPackage)
+                        buffer.append(".");
+                }
+                packageFQNs.add(buffer.toString());
             }
         }
 
-        for (String packageName : packageNames) {
-            System.out.println(packageName);
-        }
+        for (String packageFQN : packageFQNs)
+            System.out.println(packageFQN);
     }
 }
