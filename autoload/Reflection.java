@@ -24,8 +24,6 @@ public class Reflection {
         regex.append("[^$]*$");
         Pattern pattern = Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE);
 
-        int numberOfKeywordPackage = keyword.split("\\.").length;
-
         // TODO: Support library paths for Windows and Linux
         String path = System.getProperty("java.home") + File.separator + ".." + File.separator + "Classes" + File.separator;
 
@@ -45,16 +43,7 @@ public class Reflection {
                 String packageFQN = entry.getName().replace('/', '.').replaceAll("\\.class", "");
                 if (!pattern.matcher(packageFQN).find())
                     continue;
-                String[] packageNames = packageFQN.split("\\.");
-                if (packageNames.length <= numberOfKeywordPackage)
-                    continue;
-                StringBuffer buffer = new StringBuffer();
-                for (int i = 0; i < numberOfKeywordPackage + 1; i++) {
-                    buffer.append(packageNames[i]);
-                    if (i < numberOfKeywordPackage)
-                        buffer.append(".");
-                }
-                packageFQNs.add(buffer.toString());
+                packageFQNs.add(packageFQN);
             }
         }
 

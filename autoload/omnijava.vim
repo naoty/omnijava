@@ -5,14 +5,14 @@ function! omnijava#omnifunc(findstart, base)
     if l:col == 1
       return -1
     else
-      return s:get_keyword_col(l:line)
+      return omnijava#get_keyword_col(l:line)
     endif
   else
-    return s:get_complete_words(l:line, a:base)
+    return omnijava#get_complete_words(l:line, a:base)
   endif
 endfunction
 
-function! s:get_keyword_col(text)
+function! omnijava#get_keyword_col(text)
   if a:text =~# '^\(import\|package\)'
     " Return the initial column of package name
     return matchend(a:text, '^\(import\|package\)\s\+')
@@ -22,7 +22,7 @@ function! s:get_keyword_col(text)
   endif
 endfunction
 
-function! s:get_complete_words(line, keyword)
+function! omnijava#get_complete_words(line, keyword)
   let l:list = []
   call add(l:list, s:item_format(a:keyword . '*'))
 
@@ -59,5 +59,5 @@ function! s:item_format(word)
 endfunction
 
 function! omnijava#debug()
-  return s:packages_cache
+  return keys(s:packages_cache)
 endfunction
