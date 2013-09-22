@@ -5,24 +5,19 @@ import java.io.*;
 
 public class Reflection {
     public static void main(String[] args) {
-        if (args.length < 2) {
+        if (args.length < 1) {
             throw new IllegalArgumentException("Usage: java Reflection <Command> <Command arguments>");
         }
         if (args[0].equals("packages")) {
-            printPackages(args[1]);
+            printAllPackages();
         } else {
             throw new IllegalArgumentException("Avaible commands: packages");
         }
     }
 
-    public static void printPackages(String keyword) {
+    public static void printAllPackages() {
         Set<String> packageFQNs = new HashSet<String>();
-
-        StringBuffer regex = new StringBuffer();
-        regex.append("^");
-        regex.append(Pattern.quote(keyword));
-        regex.append("[^$]*$");
-        Pattern pattern = Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("^[^$]*$");
 
         // TODO: Support library paths for Windows and Linux
         String path = System.getProperty("java.home") + File.separator + ".." + File.separator + "Classes" + File.separator;

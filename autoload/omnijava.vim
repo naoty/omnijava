@@ -1,3 +1,19 @@
+function! omnijava#setup()
+  let s:root_path = filter(split(&rtp, ','), 'v:val =~# "omnijava"')[0]
+  let g:omnijava#root_path = s:root_path
+
+  let l:cache_path = s:root_path . '/cache'
+  if !isdirectory(l:cache_path)
+    call mkdir(l:cache_path)
+  endif
+
+  let s:package_list_cache_path = l:cache_path . '/package_list'
+  if !filereadable(l:package_list_cache_path)
+    let l:result = s:reflection('packages')
+    call writefile(l:result, s:package_list_cache_path)
+  endif
+endfunction
+
 function! omnijava#omnifunc(findstart, base)
   let l:col = col('.')
   let l:line = getline('.')[0 : l:col - 1]
@@ -8,6 +24,7 @@ function! omnijava#omnifunc(findstart, base)
       return omnijava#get_keyword_col(l:line)
     endif
   else
+    call omnijava#setup()
     return omnijava#get_complete_words(l:line, a:base)
   endif
 endfunction
@@ -37,15 +54,17 @@ function! omnijava#get_complete_words(line, keyword)
 endfunction
 
 function! s:get_package_list(keyword)
-  if !exists('s:packages_cache')
-    let s:packages_cache = {}
+  if !exists('s:package_list_cache')
+    let s:package_list_cache = {}
   endif
-  if !has_key(s:packages_cache, a:keyword)
-    let l:result = s:reflection('packages ' . a:keyword)
-    call filter(l:result, 'v:val =~# "' . a:keyword . '"')
-    let s:packages_cache[a:keyword] = l:result
+
+  if !has_key(s:package_list_cache, a:keyword)
+    let l:package_list = readfile(s:package_list_cache_path)
+    call filter(l:package_list, 'v:val =~# "' . a:keyword . '"')
+    let s:package_list_cache[a:keyword] = l:package_list
   endif
-  return s:packages_cache[a:keyword]
+
+  return s:package_list_cache[a:keyword]
 endfunction
 
 function! s:reflection(cmd)
@@ -59,5 +78,5 @@ function! s:item_format(word)
 endfunction
 
 function! omnijava#debug()
-  return keys(s:packages_cache)
+  return s:package_list_cache
 endfunction

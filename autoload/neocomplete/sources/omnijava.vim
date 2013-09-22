@@ -7,6 +7,7 @@ let s:source = {
 \ }
 
 function! s:source.hooks.on_init(context) dict
+  call omnijava#setup()
 endfunction
 
 function! s:source.hooks.on_final(context) dict
